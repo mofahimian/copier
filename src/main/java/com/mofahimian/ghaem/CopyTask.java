@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.function.Predicate;
 
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Scope("prototype")
 public class CopyTask implements Runnable {
 
-	private String address;
+	private Path address;
 
 	private String dstAddress;
 
@@ -34,42 +35,60 @@ public class CopyTask implements Runnable {
 
 	@Override
 	public void run() {
-		Path path = Paths.get(address);
-		if (Files.isRegularFile(path)) {
+		
+		
+		
+		
+//		Path path = Paths.get(address);
+		
+		try {
+			Files.copy(address, Paths.get(dstAddress + "\\"
+					+ jasyptStringEncryptor.encrypt(address.getParent().toString().replace(srcAddress, "")
+							.replaceAll("/", "").replaceAll("\\\\", ""))
+					+ "." + address.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+//		if (Files.isRegularFile(path)) {
 //			System.out.println(srcAddress);
 //			System.out.println(
 //					 String pathString = path.getParent().toString().replace(srcAddress, "").replaceAll("/", "").replaceAll("\\\\", "");
 //					 System.out.println(pathString);
 //					 String encryptedPathString = jasyptStringEncryptor.encrypt(pathString);
-			try {
-				Files.copy(path, Paths.get(dstAddress + "/"
-						+ jasyptStringEncryptor.encrypt(path.getParent().toString().replace(srcAddress, "")
-								.replaceAll("/", "").replaceAll("\\\\", ""))
-						+ "." + path.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else if (Files.isDirectory(path)) {
-			try {
-				Files.list(path).forEach(
-						f -> taskExecutor.submit(appCtx.getBean(CopyTask.class, f.toString(), dstAddress, srcAddress)));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+//			try {
+//				Files.copy(path, Paths.get(dstAddress + "\\"
+//						+ jasyptStringEncryptor.encrypt(path.getParent().toString().replace(srcAddress, "")
+//								.replaceAll("/", "").replaceAll("\\\\", ""))
+//						+ "." + path.getFileName().toString()), StandardCopyOption.REPLACE_EXISTING);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		} else if (Files.isDirectory(path)) {
+//			try {
+//				Files.list(path).filter(file -> !file.toFile().isHidden()).forEach(
+//						f -> taskExecutor.submit(appCtx.getBean(CopyTask.class, f.toString(), dstAddress, srcAddress)));
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
-	public CopyTask(String address, String dstAddress, String srcAddress) {
+	public static <T> Predicate<T> predicate(Predicate<T> predicate) {
+	    return predicate;
+	}
+	
+	public CopyTask(Path address, String dstAddress, String srcAddress) {
 		this.address = address;
 		this.dstAddress = dstAddress;
 		this.srcAddress = srcAddress;
 	}
 
-	public String getAddress() {
+	public Path getAddress() {
 		return address;
 	}
 
-	public void setAddress(String address) {
+	public void setAddress(Path address) {
 		this.address = address;
 	}
 

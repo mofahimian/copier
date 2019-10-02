@@ -1,5 +1,12 @@
 package com.mofahimian.ghaem;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,10 +23,17 @@ public class CopierApplication {
 		if (act.equals("enc")) {
 			String src = appCtx.getEnvironment().getProperty("src");
 			String dst = appCtx.getEnvironment().getProperty("dst");
-			appCtx.getBean(ThreadPoolTaskExecutor.class).submit(appCtx.getBean(CopyTask.class , src, dst, src));
+			try (Stream<Path> walk = Files.walk(Paths.get(src))) {
+				 walk.filter(Files::isRegularFile).filter(file -> !file.toFile().isHidden()).forEach(f -> appCtx.getBean(ThreadPoolTaskExecutor.class).submit(appCtx.getBean(CopyTask.class , f, dst, src)));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+//			appCtx.getBean(ThreadPoolTaskExecutor.class).submit(appCtx.getBean(CopyTask.class , src, dst, src));
 		} else if (act.equals("dec")) {
 			String cip = appCtx.getEnvironment().getProperty("cip");
+			System.out.println("-----------------------");
 			System.out.println(appCtx.getBean("jasyptStringEncryptor",StringEncryptor.class).decrypt(cip));
+			System.out.println("-----------------------");
 		}
 		
 //		System.out.println(appCtx.getBean("jasyptStringEncryptor",StringEncryptor.class).decrypt("0ACE515ED96995B373F11035B252781D"));

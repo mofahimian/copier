@@ -47,7 +47,7 @@ public class CopierApplication {
 				Path sourceDirPath = Paths.get(src);
 				try (Stream<Path> walk = Files.walk(sourceDirPath)) {
 					walk.filter(Files::isRegularFile).filter(path -> !path.toFile().isHidden()).forEach(path -> {
-						ZipEntry zipEntry = new ZipEntry(sourceDirPath.relativize(path).toString());
+						ZipEntry zipEntry = new ZipEntry(path.getFileName().toString());
 						try {
 							zipOutputStream.putNextEntry(zipEntry);
 							zipOutputStream.write(Files.readAllBytes(path));

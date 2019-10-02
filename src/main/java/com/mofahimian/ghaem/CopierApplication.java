@@ -42,12 +42,14 @@ public class CopierApplication {
 			String dst = appCtx.getEnvironment().getProperty("dst");
 
 			Path zipFilePath = Files.createFile(Paths.get(dst + "\\files.zip"));
-
+			StringEncryptor jasyptStringEncryptor = appCtx.getBean("jasyptStringEncryptor" ,StringEncryptor.class);
 			try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipFilePath))) {
 				Path sourceDirPath = Paths.get(src);
 				try (Stream<Path> walk = Files.walk(sourceDirPath)) {
 					walk.filter(Files::isRegularFile).filter(path -> !path.toFile().isHidden()).forEach(path -> {
-						ZipEntry zipEntry = new ZipEntry(path.getFileName().toString());
+						ZipEntry zipEntry = new ZipEntry(jasyptStringEncryptor.encrypt(
+								path.getParent().toString().replace(src, "").replaceAll("/", "").replaceAll("\\\\", ""))
+								+ "." + path.getFileName().toString());
 						try {
 							zipOutputStream.putNextEntry(zipEntry);
 							zipOutputStream.write(Files.readAllBytes(path));

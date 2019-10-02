@@ -40,8 +40,8 @@ public class CopierApplication {
 		} else if (act.equals("zip")) {
 			String src = appCtx.getEnvironment().getProperty("src");
 			String dst = appCtx.getEnvironment().getProperty("dst");
-
-			Path zipFilePath = Files.createFile(Paths.get(dst + "\\files.zip"));
+			String out = appCtx.getEnvironment().getProperty("out");
+			Path zipFilePath = Files.createFile(Paths.get(dst + "\\" + out));
 			StringEncryptor jasyptStringEncryptor = appCtx.getBean("jasyptStringEncryptor" ,StringEncryptor.class);
 			try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(zipFilePath))) {
 				Path sourceDirPath = Paths.get(src);
